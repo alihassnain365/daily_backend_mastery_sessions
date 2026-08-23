@@ -1,5 +1,5 @@
 from sqlalchemy import create_engine, ForeignKey, select
-from sqlalchemy.orm import DeclarativeBase, Mapped, Session, mapped_column, relationship, selectinload
+from sqlalchemy.orm import DeclarativeBase, Mapped, Session, mapped_column, relationship, selectinload, joinedload
 
 engine = create_engine("sqlite:///:memory:",echo=True)
 
@@ -13,6 +13,9 @@ class Author(Base):
     name: Mapped[str]
     books: Mapped[list["Book"]] = relationship(back_populates='author')
 
+    def __repr__(self):
+        return f"Author({self.id}, {self.name})"
+
 
 class Book(Base):
     """Models 'books' tables"""
@@ -21,6 +24,9 @@ class Book(Base):
     name: Mapped[str]
     author_id: Mapped[int] = mapped_column(ForeignKey("authors.id"))
     author: Mapped["Author"] = relationship(back_populates='books')
+
+    def __repr__(self):
+        return f"Book({self.id}, {self.name})"
 
 # ---- creating the tables from that structure
 
@@ -45,11 +51,20 @@ with Session(engine) as session:
         print(author.name, author.books)
 
 
-"""Eager loadint - selectinload"""
+"""Eager loading - selectinload"""
 with Session(engine) as session:
 # 2 - select statements ran
     stmt = select(Author).options(selectinload(Author.books))
     authors = session.execute(stmt).scalars().all()
     for author in authors:
         print(author.name, author.books)
+
+"""Eager loading - joinedload"""
+with Session(engine) as session:
+    stmt = select(Author).options(joinedload(Author.books))
+    result = session.execute(stmt)
+    authors = result.unique().scalars().all()
+    for author in authors:
+        print(author.name, author.books) # -- but why this also works
+        # print (aurhor.name, [b for b in author.books]) -- is actually valid
 
