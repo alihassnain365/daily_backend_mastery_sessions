@@ -1,16 +1,26 @@
-from database import engine, Session
+from fastapi import FastAPI, Depends, HTTPException
+from database import engine, sessionLocal
 from models import Author, Book
-from sqlalchemy import select
+from pydantic import BaseModel
 
-with Session(engine) as session:
-    if session.execute(select(Author)).scalars().all():
-        print("Seed alreay exists, so skiping this time")
+app = FastAPI()
+
+def get_db():
+    db = sessionLocal()
+    try:
+        yield db
+    finally:
+        db.close()
+
+class AuthorOut(BaseModel):
+    id: int
+    name: str
+    age: int
+
+@app.get("/get_author/{author_id}", response_model=AuthorOut)
+def get_author(author_id: int, db= Depends(get_db)):
+    author = db.get(Author, author_id)
+    if author is None:
+        raise HTTPException(status_code=404, detail="Id does not exists.")
     else:
-        for i in range(1,11):
-            author = Author(name=f"autho{i}", age=i*10)
-            for j in range(1,3):
-                book = Book(title = f"book{j}")
-                author.books.append(book)
-            session.add(author)
-        session.commit()
-        
+        return author
