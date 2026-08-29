@@ -1,14 +1,12 @@
-from sqlalchemy import create_engine, event
+from sqlalchemy import create_engine
 from sqlalchemy.orm import Session, sessionmaker
 
-engine = create_engine("sqlite:///library.db")
+engine = create_engine("postgresql+psycopg2://postgres:Tribe666%40@localhost:5432/library_project")
 sessionLocal = sessionmaker(bind=engine)
 
-# applying foreign_key constraints for every opened new connection
-@event.listens_for(engine, "connect")
-def set_sqlite_pragma(dbapi_connection, connection_recond):
-    cursor = dbapi_connection.cursor()
-    cursor.execute("PRAGMA foreign_keys=ON")
-    cursor.close()
+
+
+
+
 
 
