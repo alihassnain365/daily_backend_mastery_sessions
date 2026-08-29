@@ -25,6 +25,3 @@ class Book(Base):
 
 Base.metadata.create_all(engine)
 
-with engine.connect() as conn:
-    result = conn.execute(text("SELECT name FROM sqlite_master WHERE type = 'table'"))
-    print(result.fetchall())
