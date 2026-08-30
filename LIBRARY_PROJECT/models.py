@@ -20,6 +20,7 @@ class Book(Base):
     __tablename__ = 'books'
     id: Mapped[int] = mapped_column(primary_key=True)
     title: Mapped[str] 
+    price: Mapped[int | None] 
     author_id: Mapped[int] = mapped_column(ForeignKey("authors.id"))
     author: Mapped["Author"] = relationship(back_populates="books")
 
