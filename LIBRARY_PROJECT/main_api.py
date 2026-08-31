@@ -3,6 +3,8 @@ from database import Session, sessionLocal
 from models import Author, Book
 from pydantic import BaseModel
 from sqlalchemy.exc import IntegrityError
+from sqlalchemy import text
+
 
 
 app = FastAPI()
@@ -31,6 +33,7 @@ class BookOut(BaseModel):
 class BookPut(BaseModel):
     title: str | None = None
     price: int | float | None = None
+    author_id: int | None = None
 
 
 """1. getting author """
@@ -77,14 +80,32 @@ def get_book(book_id: int, db:Session = Depends(get_db)):
 def put_book(book_id:int , book: BookPut, db: Session = Depends(get_db)):
     targeted_book = db.get(Book, book_id)
     if targeted_book is None:
-        raise HTTPException(status_code=404, detail="Book with this id does not exists.")
-    else:
-        if book.title is not None:
-            targeted_book.title = book.title
-        if book.price is not None:
-            targeted_book.price = book.price
+        raise HTTPException(status_code=404, detail="Book is not found with this id")
+    if book.title is not None:
+        targeted_book.title = book.title
+    if book.price is not None:
+        targeted_book.price = book.price
+    if book.author_id is not None:
+        targeted_book.author_id = book.author_id
+
+    try:
         db.commit()
+    except IntegrityError as e:
+        print(f"The following error has occured: {e}")
+        raise HTTPException(status_code=400, detail="Invalid author_id")
     return targeted_book
+
+"""5. deleting book"""
+
+@app.delete("/book/delete/{book_id}", status_code=204)
+def del_book(book_id: int, db: Session = Depends(get_db)):
+    targeted_book = db.get(Book, book_id)
+    if targeted_book is None:
+        raise HTTPException(status_code=404, detail="Book with this id doesn't exist.")
+    db.delete(targeted_book)
+    db.commit()
+    
+
         
 
     
