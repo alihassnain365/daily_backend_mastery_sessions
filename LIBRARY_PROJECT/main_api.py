@@ -76,8 +76,8 @@ def get_book(book_id: int, db:Session = Depends(get_db)):
 """3.1  getting all books inside book"""
 
 @app.get("/get/books", response_model=list[BookOut])
-def get_all_books(db:Session = Depends(get_db)):
-    books = db.execute(select(Book)).scalars().all()
+def get_all_books(limit:int = 10, offset:int = 0 , db:Session = Depends(get_db)):
+    books = db.execute(select(Book).limit(limit).offset(offset)).scalars().all()
     return books
 
 
