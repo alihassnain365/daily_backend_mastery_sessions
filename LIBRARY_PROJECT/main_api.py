@@ -3,7 +3,7 @@ from database import Session, sessionLocal
 from models import Author, Book
 from pydantic import BaseModel
 from sqlalchemy.exc import IntegrityError
-from sqlalchemy import text
+from sqlalchemy import text, select
 
 
 
@@ -73,6 +73,13 @@ def get_book(book_id: int, db:Session = Depends(get_db)):
     else:
         return book 
 
+"""3.1  getting all books inside book"""
+
+@app.get("/get/books", response_model=list[BookOut])
+def get_all_books(db:Session = Depends(get_db)):
+    books = db.execute(select(Book)).scalars().all()
+    return books
+
 
 """4. updating book"""  
 
@@ -104,7 +111,7 @@ def del_book(book_id: int, db: Session = Depends(get_db)):
         raise HTTPException(status_code=404, detail="Book with this id doesn't exist.")
     db.delete(targeted_book)
     db.commit()
-    
+
 
         
 
