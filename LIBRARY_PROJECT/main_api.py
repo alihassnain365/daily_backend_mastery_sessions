@@ -28,6 +28,11 @@ class BookOut(BaseModel):
     title: str
     author_id:int
 
+class BookPut(BaseModel):
+    title: str | None = None
+    price: int | float | None = None
+
+
 """1. getting author """
 
 @app.get("/get_author/{author_id}", response_model=AuthorOut)
@@ -63,7 +68,24 @@ def get_book(book_id: int, db:Session = Depends(get_db)):
     if book is None:
         raise HTTPException(status_code=404, detail="Book with this id not exists.")
     else:
-        return book    
+        return book 
+
+
+"""4. updating book"""  
+
+@app.put("/book/update/{book_id}", response_model=BookOut)
+def put_book(book_id:int , book: BookPut, db: Session = Depends(get_db)):
+    targeted_book = db.get(Book, book_id)
+    if targeted_book is None:
+        raise HTTPException(status_code=404, detail="Book with this id does not exists.")
+    else:
+        if book.title is not None:
+            targeted_book.title = book.title
+        if book.price is not None:
+            targeted_book.price = book.price
+        db.commit()
+    return targeted_book
+        
 
     
 
