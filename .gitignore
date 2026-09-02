@@ -4,3 +4,5 @@ venv
 __pycahce__
 .vscode
 .exe
+*.__pycahce__
+*.pyc 

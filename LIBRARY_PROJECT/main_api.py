@@ -32,7 +32,7 @@ class BookOut(BaseModel):
 
 class BookPut(BaseModel):
     title: str | None = None
-    price: int | float | None = None
+    cost: int | float | None = None
     author_id: int | None = None
 
 
@@ -76,8 +76,16 @@ def get_book(book_id: int, db:Session = Depends(get_db)):
 """3.1  getting all books inside book"""
 
 @app.get("/get/books", response_model=list[BookOut])
-def get_all_books(limit:int = 10, offset:int = 0 , db:Session = Depends(get_db)):
-    books = db.execute(select(Book).limit(limit).offset(offset)).scalars().all()
+def get_all_books(price_max: int | None = None, price_min: int | None = None, author_id: int | None = None, limit: int = 10, offset: int = 0, db: Session = Depends(get_db)):
+    query = select(Book)
+    if author_id is not None:
+        query = query.where(Book.author_id == author_id)
+    if price_min is not None:
+        query = query.where(Book.cost >= price_min)
+    if price_max is not None:
+        query = query.where(Book.cost <= price_max)
+    query = query.order_by(Book.cost.desc()).limit(limit).offset(offset)
+    books = db.execute(query).scalars().all()
     return books
 
 
@@ -90,8 +98,8 @@ def put_book(book_id:int , book: BookPut, db: Session = Depends(get_db)):
         raise HTTPException(status_code=404, detail="Book is not found with this id")
     if book.title is not None:
         targeted_book.title = book.title
-    if book.price is not None:
-        targeted_book.price = book.price
+    if book.cost is not None:
+        targeted_book.cost = book.cost
     if book.author_id is not None:
         targeted_book.author_id = book.author_id
 
